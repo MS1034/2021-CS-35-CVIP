@@ -40,7 +40,7 @@ class VideoPlayerApp(ctk.CTk):
         else:
             width = self.capCam.get(cv.CAP_PROP_FRAME_WIDTH)
             height = self.capCam.get(cv.CAP_PROP_FRAME_HEIGHT)
-            print(f"Hi I am subhan {(height,width)}")
+            # print(f"Hi I am subhan {(height,width)}")
 
         self.isStreaming = True
         self.isStreaming_Int = tk.IntVar(value=1)
@@ -117,7 +117,7 @@ class VideoPlayerApp(ctk.CTk):
         self.disable_video_player()
 
     def disable_stream(self):
-        print("I am Playing Video")
+        # print("I am Playing Video")
         self.camera_dropdown.configure(state=tk.DISABLED)
         self.browse_button.configure(state=tk.NORMAL)
         self.browse_button.configure(state=tk.NORMAL)
@@ -140,7 +140,7 @@ class VideoPlayerApp(ctk.CTk):
         return arr
 
     def disable_video_player(self):
-        print("I am Streaming")
+        # print("I am Streaming")
         self.browse_button.configure(state=tk.DISABLED)
         self.browse_button.configure(state=tk.DISABLED)
         self.play_pause_button.configure(state=tk.DISABLED)
@@ -159,7 +159,7 @@ class VideoPlayerApp(ctk.CTk):
         else:
             width = self.capCam.get(cv.CAP_PROP_FRAME_WIDTH)
             height = self.capCam.get(cv.CAP_PROP_FRAME_HEIGHT)
-            print(f"Hi I am subhan {(height,width)}")
+            # print(f"Hi I am subhan {(height,width)}")
         self.Streaming()
 
     def change_camera(self, *args):
@@ -206,10 +206,10 @@ class VideoPlayerApp(ctk.CTk):
                         self.capCam.get(cv.CAP_PROP_POS_FRAMES) + 20)
 
     def Streaming(self):
-        print(f"in stREAM yes {self.isStreaming}")
+        # print(f"in stREAM yes {self.isStreaming}")
 
         while self.isStreaming:
-            print(f"yes {self.isStreaming}")
+            # print(f"yes {self.isStreaming}")
             img = self.capCam.read()[1]
             img = cv.flip(img, 1)
             img = self.ConvertImg(img)
@@ -231,27 +231,44 @@ class VideoPlayerApp(ctk.CTk):
             im_gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
             (thresh, im_bw) = cv.threshold(im_gray, 128,
                                            255, cv.THRESH_BINARY | cv.THRESH_OTSU)
-            thresh = 175
+            # thresh = 175
             return cv.threshold(im_gray, thresh, 255, cv.THRESH_BINARY)[1]
         else:
             print("Invalid color mode selected:", selected_mode)
             return cv.cvtColor(img, cv.COLOR_BGR2RGB)
 
     def play_video(self):
-
         if self.capCam and not self.isStreaming and not self.paused:
-
             ret, frame = self.capCam.read()
             if ret:
-                # cv2image = cv.cvtColor(frame, cv.COLOR_BGR2RGBA)
                 img = self.ConvertImg(frame)
                 img = self.Resize(img)
-                # img = Image.fromarray(cv2image).resize((760, 400))
                 imgtk = ImageTk.PhotoImage(Image.fromarray(img))
-                # imgtk = ImageTk.PhotoImage(image=img)
                 self.label.imgtk = imgtk
                 self.label.configure(image=imgtk)
-        self.label.after(10, self.play_video)
+
+        # Get the selected speed from the dropdown
+        selected_speed = self.speed_dropdown.get()
+
+        # Convert the speed to a float value
+        if selected_speed == "Normal":
+            speed_multiplier = 1.0
+        else:
+            speed_multiplier = float(selected_speed)
+
+        # Get the original FPS of the video
+        original_fps = self.capCam.get(cv.CAP_PROP_FPS)
+
+        # Calculate the adjusted FPS based on the selected speed
+        adjusted_fps = original_fps * speed_multiplier
+        print(
+            f"fps= {original_fps}, adjusted_fps={adjusted_fps}, speed_multiplier={speed_multiplier}")
+
+        # Calculate the delay between frames based on the adjusted FPS
+        delay = int(500 / adjusted_fps) if (adjusted_fps > 0) else 10
+
+        # Call the play_video method again after the calculated delay
+        self.label.after(delay, self.play_video)
 
     def Resize(self, img):
 
